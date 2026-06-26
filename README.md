@@ -52,8 +52,4 @@ python main.py
 ```
 Enter any YouTube URL when prompted.
 
-## Coming soon
-- Web UI with copy buttons for each format
-- FastAPI backend for API access
-- Docker containerisation
-- AWS deployment
+## Its in PROGRESS.........
