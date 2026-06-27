@@ -490,6 +490,12 @@
         </div>
 
         <div class="input-section">
+            <div style="display:flex;gap:10px;margin-bottom:14px">
+    <button onclick="setMode('url')" id="modeUrl" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(102,126,234,0.5);background:rgba(102,126,234,0.15);color:#a5b4fc;font-size:13px;cursor:pointer">YouTube URL</button>
+    <button onclick="setMode('text')" id="modeText" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;font-size:13px;cursor:pointer">Paste Transcript</button>
+</div>
+
+        <div id="urlMode">
             <div class="input-label">YouTube Video URL</div>
             <div class="input-row">
                 <input 
@@ -501,6 +507,15 @@
                     Generate ✦
                 </button>
             </div>
+        </div>
+
+        <div id="textMode" style="display:none">
+            <div class="input-label">Paste Video Transcript</div>
+            <textarea id="transcriptInput" placeholder="Paste the video transcript here..." style="width:100%;height:120px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 18px;color:#fff;font-size:14px;outline:none;resize:vertical;font-family:inherit;line-height:1.6"></textarea>
+            <button class="generate-btn" onclick="generateFromText()" style="margin-top:10px;width:100%">
+                Generate ✦
+            </button>
+        </div>
         </div>
 
         <div class="loading" id="loading">
@@ -676,6 +691,51 @@
         document.getElementById('urlInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') generate();
         });
+
+        let currentMode = 'url';
+
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('urlMode').style.display = mode === 'url' ? 'block' : 'none';
+    document.getElementById('textMode').style.display = mode === 'text' ? 'block' : 'none';
+    
+    document.getElementById('modeUrl').style.background = mode === 'url' ? 'rgba(102,126,234,0.15)' : 'transparent';
+    document.getElementById('modeUrl').style.color = mode === 'url' ? '#a5b4fc' : '#6b7280';
+    document.getElementById('modeUrl').style.borderColor = mode === 'url' ? 'rgba(102,126,234,0.5)' : 'rgba(255,255,255,0.1)';
+    
+    document.getElementById('modeText').style.background = mode === 'text' ? 'rgba(102,126,234,0.15)' : 'transparent';
+    document.getElementById('modeText').style.color = mode === 'text' ? '#a5b4fc' : '#6b7280';
+    document.getElementById('modeText').style.borderColor = mode === 'text' ? 'rgba(102,126,234,0.5)' : 'rgba(255,255,255,0.1)';
+}
+
+async function generateFromText() {
+    const transcript = document.getElementById('transcriptInput').value.trim();
+    if (!transcript) return;
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
+
+    try {
+        const response = await fetch('/repurpose-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transcript })
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error);
+
+        currentContent = data.content;
+        displayResults(data.content);
+
+    } catch (err) {
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error').textContent = '⚠ ' + err.message;
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
     </script>
 </body>
 </html>
